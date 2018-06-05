@@ -1,6 +1,6 @@
 #pragma once
 #include <vector>
-#include "Box.h"
+#include "Cube.h"
 
 class RandomWalker
 {
@@ -9,6 +9,6 @@ public:
 	~RandomWalker();
 
 private:
-	std::vector<Box*> boxes;
+	std::vector<Cube*> boxes;
 };
 
