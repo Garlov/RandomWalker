@@ -1,19 +1,33 @@
 #include "RandomWalker.h"
-
-#include <common/objloader.hpp>
-#include <common/vboindexer.hpp>
+#include <iostream>
 
 RandomWalker::RandomWalker()
 {
-	std::vector<glm::vec3> vertices;
-	std::vector<glm::vec2> uvs;
-	std::vector<glm::vec3> normals;
-	bool res = loadOBJ("cube.obj", vertices, uvs, normals);
-
-	indexVBO(vertices, uvs, normals, cubeIndices, indexed_cubeVertices, indexed_cubeUvs, indexed_cubeNormals);
 }
 
 
 RandomWalker::~RandomWalker()
 {
+}
+
+void RandomWalker::update(double deltaTime) {
+	timeSinceLastCube += deltaTime;
+	if (timeSinceLastCube > timeBetweenCubes) {
+		timeSinceLastCube -= timeBetweenCubes;
+		spawnCube();
+	}
+}
+
+void RandomWalker::draw()
+{
+	for (int i = 0; i < cubes.size(); i++) {
+		Cube * cube = cubes.at(i);
+		cube->draw();
+	}
+}
+
+void RandomWalker::spawnCube() {
+	std::cout << "spawn cube" << std::endl;
+	Cube * newCube = new Cube();
+	cubes.push_back(newCube);
 }
