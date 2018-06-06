@@ -74,14 +74,22 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <SDLCheck>true</SDLCheck>
+      <SDLCheck>
+      </SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)/../external resources/glew/include/;$(SolutionDir)/../external resources/glfw/include/;$(SolutionDir)/../external resources/glm/;$(SolutionDir)/../external resources/opengl/;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\external resources\glew\include\;$(SolutionDir)..\external resources\glfw\include\;$(SolutionDir)..\external resources\glm\;$(SolutionDir)..\external resources\opengl\.;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <MultiProcessorCompilation>
+      </MultiProcessorCompilation>
     </ClCompile>
     <Link>
-      <AdditionalLibraryDirectories>$(SolutionDir)/../external resources/glew/lib/release/Win32;$(SolutionDir)/../external resources/glfw/lib-vc2015/;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)..\external resources\glew\lib\Release\Win32\;$(SolutionDir)..\external resources\glfw\lib-vc2015;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>opengl32.lib;glew32.lib;glfw3.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <IgnoreSpecificDefaultLibraries>
+      </IgnoreSpecificDefaultLibraries>
     </Link>
+    <ProjectReference>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
+    </ProjectReference>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -97,16 +105,24 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <SDLCheck>true</SDLCheck>
+      <SDLCheck>
+      </SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)/../external resources/glew/include/;$(SolutionDir)/../external resources/glfw/include/;$(SolutionDir)/../external resources/glm/;$(SolutionDir)/../external resources/opengl/;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\external resources\glew\include\;$(SolutionDir)..\external resources\glfw\include\;$(SolutionDir)..\external resources\glm\;$(SolutionDir)..\external resources\opengl\.;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <MultiProcessorCompilation>
+      </MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalLibraryDirectories>$(SolutionDir)/../external resources/glew/lib/release/Win32;$(SolutionDir)/../external resources/glfw/lib-vc2015/;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)..\external resources\glew\lib\Release\Win32\;$(SolutionDir)..\external resources\glfw\lib-vc2015;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>opengl32.lib;glew32.lib;glfw3.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <IgnoreSpecificDefaultLibraries>
+      </IgnoreSpecificDefaultLibraries>
     </Link>
+    <ProjectReference>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
+    </ProjectReference>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -123,21 +139,23 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Box.cpp" />
+    <ClCompile Include="..\..\external resources\opengl\common\objloader.cpp" />
+    <ClCompile Include="..\..\external resources\opengl\common\shader.cpp" />
+    <ClCompile Include="..\..\external resources\opengl\common\vboindexer.cpp" />
+    <ClCompile Include="Cube.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="RandomWalker.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Box.h" />
+    <ClInclude Include="..\..\external resources\opengl\common\objloader.hpp" />
+    <ClInclude Include="..\..\external resources\opengl\common\shader.hpp" />
+    <ClInclude Include="..\..\external resources\opengl\common\vboindexer.hpp" />
+    <ClInclude Include="Cube.h" />
     <ClInclude Include="RandomWalker.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="cube.mtl" />
     <None Include="shaders\ColorFragmentShader.fragmentshader" />
     <None Include="shaders\TransformVertexShader.vertexshader" />
-  </ItemGroup>
-  <ItemGroup>
-    <Object Include="cube.obj" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

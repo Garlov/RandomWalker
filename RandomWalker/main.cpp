@@ -1,7 +1,6 @@
 // Include standard headers
 #include <stdio.h>
 #include <stdlib.h>
-#include <iostream>
 
 // Include GLEW
 #include <GL/glew.h>
@@ -22,7 +21,7 @@ int main(void)
 	// Initialise GLFW
 	if (!glfwInit())
 	{
-		std::cout << stderr << "Failed to initialize GLFW\n";
+		fprintf(stderr, "Failed to initialize GLFW\n");
 		getchar();
 		return -1;
 	}
@@ -34,9 +33,9 @@ int main(void)
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
 	// Open a window and create its OpenGL context
-	window = glfwCreateWindow(1024, 768, "Random Walker", NULL, NULL);
+	window = glfwCreateWindow(1024, 768, "Tutorial 04 - Colored Cube", NULL, NULL);
 	if (window == NULL) {
-		std::cout << stderr << "Failed to open GLFW window. If you have an Intel GPU, they are not 3.3 compatible. Try the 2.1 version of the tutorials.\n";
+		fprintf(stderr, "Failed to open GLFW window. If you have an Intel GPU, they are not 3.3 compatible. Try the 2.1 version of the tutorials.\n");
 		getchar();
 		glfwTerminate();
 		return -1;
@@ -46,7 +45,7 @@ int main(void)
 	// Initialize GLEW
 	glewExperimental = true; // Needed for core profile
 	if (glewInit() != GLEW_OK) {
-		std::cout << stderr << "Failed to initialize GLEW\n";
+		fprintf(stderr, "Failed to initialize GLEW\n");
 		getchar();
 		glfwTerminate();
 		return -1;
@@ -74,12 +73,12 @@ int main(void)
 	GLuint MatrixID = glGetUniformLocation(programID, "MVP");
 
 	// Projection matrix : 45° Field of View, 4:3 ratio, display range : 0.1 unit <-> 100 units
-	glm::mat4 Projection = glm::perspective(glm::radians(45.0f), 4.0f / 3.0f, 0.1f, 300.0f);
+	glm::mat4 Projection = glm::perspective(glm::radians(45.0f), 4.0f / 3.0f, 0.1f, 100.0f);
 	// Camera matrix
 	glm::mat4 View = glm::lookAt(
-		glm::vec3(200, 0, 0), // Camera pos
-		glm::vec3(0, 0, 0), // look at
-		glm::vec3(0, 1, 0)  // up direction
+		glm::vec3(4, 3, -3), // Camera is at (4,3,-3), in World Space
+		glm::vec3(0, 0, 0), // and looks at the origin
+		glm::vec3(0, 1, 0)  // Head is up (set to 0,-1,0 to look upside-down)
 	);
 	// Model matrix : an identity matrix (model will be at the origin)
 	glm::mat4 Model = glm::mat4(1.0f);
