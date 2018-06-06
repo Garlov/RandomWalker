@@ -14,7 +14,7 @@ public:
 private:
 	double timeSinceLastCube = 0;
 	const double timeBetweenCubes = 1000;
-	glm::vec2 position = glm::vec2(0, 0);
+	glm::vec3 position = glm::vec3(0, 0, 0);
 	std::vector<Cube*> cubes;
 
 	void spawnCube();
