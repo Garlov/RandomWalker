@@ -1,18 +1,20 @@
-#ifndef RANDOMWALKER_CUBE_H
-#define RANDOMWALKER_CUBE_H
-
+#pragma once
 #include <GL/glew.h>
+#include <glm/glm.hpp>
 
 class Cube
 {
 public:
 	Cube();
 	~Cube();
-	int draw(GLfloat* g_vertex_buffer_data, GLfloat* g_color_buffer_data, int index);
+	void setPosition(glm::vec3 pos);
+	glm::vec3 getPosition();
+	int draw(GLfloat* g_vertex_buffer_data, GLfloat* g_color_buffer_data, GLfloat* g_position_buffer_data, int index);
 
 private:
 	static const GLfloat cubeVertex[];
-	static const GLfloat cubeColor[];
+	glm::vec3 position;
+	GLfloat r;
+	GLfloat g;
+	GLfloat b;
 };
-
-#endif /* !RANDOMWALKER_CUBE_H */

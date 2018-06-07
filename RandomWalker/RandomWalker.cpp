@@ -1,6 +1,9 @@
 #include "RandomWalker.h"
 #include <iostream>
 
+const int RandomWalker::MAX_CUBES = 1000;
+const double RandomWalker::TIME_BETWEEN_CUBES = 50;
+
 RandomWalker::RandomWalker() {
 }
 
@@ -13,14 +16,21 @@ void RandomWalker::update(double deltaTime) {
 	if (timeSinceLastCube > TIME_BETWEEN_CUBES && cubes.size() < MAX_CUBES) {
 		timeSinceLastCube -= TIME_BETWEEN_CUBES;
 		move();
-		spawnCube();
+		if (!hasCubeOnPosition(position)) { // only spawn cubes on new positions
+			spawnCube();
+		}
 	}
 }
 
-int RandomWalker::draw(GLfloat* g_vertex_buffer_data, GLfloat* g_color_buffer_data, int index) {
-	for (unsigned int i = 0; i < cubes.size(); i++) {
+int RandomWalker::getCubeCount()
+{
+	return cubes.size();
+}
+
+int RandomWalker::draw(GLfloat* g_vertex_buffer_data, GLfloat* g_color_buffer_data, GLfloat* g_position_buffer_data, int index) {
+	for (int i = 0; i < cubes.size(); i++) {
 		Cube * cube = cubes.at(i);
-		index = cube->draw(g_vertex_buffer_data, g_color_buffer_data, index);
+		index = cube->draw(g_vertex_buffer_data, g_color_buffer_data, g_position_buffer_data, index);
 	}
 
 	return index;
@@ -51,8 +61,6 @@ void RandomWalker::move() {
 	default:
 		break;
 	}
-
-	std::cout << position.x << "," << position.y << "," << position.z << std::endl;
 }
 
 Axis RandomWalker::getAxis() {
@@ -64,11 +72,18 @@ Direction RandomWalker::getDirection() {
 }
 
 void RandomWalker::spawnCube() {
-	// TODO check if there is already a cube in this position and skip making a new one if that is true
-	std::cout << "spawn cube" << std::endl;
 	Cube * newCube = new Cube();
+	newCube->setPosition(position);
 	cubes.push_back(newCube);
 }
 
-const int RandomWalker::MAX_CUBES = 1;
-const double RandomWalker::TIME_BETWEEN_CUBES = 1000;
+bool RandomWalker::hasCubeOnPosition(glm::vec3 pos)
+{
+	for (int i = 0; i < cubes.size(); i++) {
+		Cube * cube = cubes.at(i);
+		if (cube->getPosition() == pos) {
+			return true;
+		}
+	}
+	return false;
+}

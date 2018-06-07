@@ -22,8 +22,9 @@ public:
 
 	static const int MAX_CUBES;
 
-	int draw(GLfloat* g_vertex_buffer_data, GLfloat* g_color_buffer_data, int index);
+	int draw(GLfloat* g_vertex_buffer_data, GLfloat* g_color_buffer_data, GLfloat* g_position_buffer_data, int index);
 	void update(double deltaTime);
+	int getCubeCount();
 
 private:
 	static const double TIME_BETWEEN_CUBES;
@@ -36,5 +37,6 @@ private:
 	Axis getAxis();
 	Direction getDirection();
 	void spawnCube();
+	bool hasCubeOnPosition(glm::vec3 pos);
 };
 

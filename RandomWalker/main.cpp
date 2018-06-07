@@ -57,7 +57,7 @@ int main(void)
 	// Ensure we can capture the escape key being pressed below
 	glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE);
 
-	glClearColor(0.0f, 0.0f, 0.4f, 0.0f);
+	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS);
@@ -70,14 +70,14 @@ int main(void)
 
 	GLuint MatrixID = glGetUniformLocation(programID, "MVP");
 
-	// Projection matrix : 45° Field of View, 4:3 ratio, display range : 0.1 unit <-> 100 units
-	glm::mat4 Projection = glm::perspective(glm::radians(45.0f), 4.0f / 3.0f, 0.1f, 100.0f);
+	// Projection matrix : 45° Field of View, 4:3 ratio, display range : 0.1 unit <-> 400 units
+	glm::mat4 Projection = glm::perspective(glm::radians(45.0f), 4.0f / 3.0f, 0.1f, 200.0f);
 
 	// Camera matrix
 	glm::mat4 View = glm::lookAt(
-		glm::vec3(4, 3, -3), // Camera is at (4,3,-3), in World Space
-		glm::vec3(0, 0, 0), // and looks at the origin
-		glm::vec3(0, 1, 0)  // Head is up (set to 0,-1,0 to look upside-down)
+		glm::vec3(100, 100, -100), // Camera pos
+		glm::vec3(0, 0, 0), // Camera lookat
+		glm::vec3(0, 1, 0)  // Camera up dir
 	);
 
 	glm::mat4 Model = glm::mat4(1.0f);
@@ -86,18 +86,23 @@ int main(void)
 	RandomWalker randomWalker = RandomWalker();
 
 	GLfloat* g_vertex_buffer_data = new GLfloat[RandomWalker::MAX_CUBES * 12 * 3 * 3];
-	GLfloat* g_color_buffer_data = new GLfloat[RandomWalker::MAX_CUBES * 12 * 3 * 3];
+	GLfloat* g_color_buffer_data = new GLfloat[RandomWalker::MAX_CUBES * 3];
+	GLfloat* g_position_buffer_data = new GLfloat[RandomWalker::MAX_CUBES * 3];
 
 	GLuint vertexBuffer;
 	glGenBuffers(1, &vertexBuffer);
 	glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
 	glBufferData(GL_ARRAY_BUFFER, RandomWalker::MAX_CUBES * 12 * 3 * 3 * sizeof(GLfloat), NULL, GL_STREAM_DRAW);
 
-	// The VBO containing the colors of the particles
 	GLuint colorBuffer;
 	glGenBuffers(1, &colorBuffer);
 	glBindBuffer(GL_ARRAY_BUFFER, colorBuffer);
-	glBufferData(GL_ARRAY_BUFFER, RandomWalker::MAX_CUBES * 12 * 3 * 3 * sizeof(GLfloat), NULL, GL_STREAM_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, RandomWalker::MAX_CUBES * 3 * sizeof(GLfloat), NULL, GL_STREAM_DRAW);
+
+	GLuint positionBuffer;
+	glGenBuffers(1, &positionBuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, positionBuffer);
+	glBufferData(GL_ARRAY_BUFFER, RandomWalker::MAX_CUBES * 3 * sizeof(GLfloat), NULL, GL_STREAM_DRAW);
 
 	const double FRAMES_PER_SECOND = 60; // this should be able to run the update loop at 60 fps easily
 	const double MS_PER_FRAME = 1000 / FRAMES_PER_SECOND;
@@ -125,7 +130,7 @@ int main(void)
 		// No moving objects in this, so no need to use the interpolation
 		//interpolation = float(newTime + SKIP_TICKS - next_game_tick) / float(SKIP_TICKS);
 
-		randomWalker.draw(g_vertex_buffer_data, g_color_buffer_data, 0);
+		randomWalker.draw(g_vertex_buffer_data, g_color_buffer_data, g_position_buffer_data, 0);
 		currentDrawsPerSecond += 1;
 
 		// Clear the screen
@@ -136,10 +141,13 @@ int main(void)
 		glBufferSubData(GL_ARRAY_BUFFER, 0, RandomWalker::MAX_CUBES * sizeof(GLfloat) * 12 * 3 * 3, g_vertex_buffer_data);
 
 		glBindBuffer(GL_ARRAY_BUFFER, colorBuffer);
-		glBufferData(GL_ARRAY_BUFFER, RandomWalker::MAX_CUBES * 12 * 3 * 3 * sizeof(GLfloat), NULL, GL_STREAM_DRAW); // Buffer orphaning, a common way to improve streaming perf. See above link for details.
-		glBufferSubData(GL_ARRAY_BUFFER, 0, RandomWalker::MAX_CUBES * sizeof(GLfloat) * 12 * 3 * 3, g_color_buffer_data);
+		glBufferData(GL_ARRAY_BUFFER, RandomWalker::MAX_CUBES * 3 * sizeof(GLfloat), NULL, GL_STREAM_DRAW);
+		glBufferSubData(GL_ARRAY_BUFFER, 0, RandomWalker::MAX_CUBES * sizeof(GLfloat) * 3, g_color_buffer_data);
 
-		// Use our shader
+		glBindBuffer(GL_ARRAY_BUFFER, positionBuffer);
+		glBufferData(GL_ARRAY_BUFFER, RandomWalker::MAX_CUBES * 3 * sizeof(GLfloat), NULL, GL_STREAM_DRAW);
+		glBufferSubData(GL_ARRAY_BUFFER, 0, RandomWalker::MAX_CUBES * sizeof(GLfloat) * 3, g_position_buffer_data);
+
 		glUseProgram(programID);
 
 		// Send our transformation to the currently bound shader, 
@@ -162,7 +170,18 @@ int main(void)
 		glEnableVertexAttribArray(1);
 		glBindBuffer(GL_ARRAY_BUFFER, colorBuffer);
 		glVertexAttribPointer(
-			1,                                // attribute. No particular reason for 1, but must match the layout in the shader.
+			1,                              // attribute. No particular reason for 1, but must match the layout in the shader.
+			3,                              // size
+			GL_FLOAT,						// type
+			GL_FALSE,                       // normalized?
+			0,                              // stride
+			(void*)0                        // array buffer offset
+		);
+
+		glEnableVertexAttribArray(2);
+		glBindBuffer(GL_ARRAY_BUFFER, positionBuffer);
+		glVertexAttribPointer(
+			2,                                // attribute. No particular reason for 1, but must match the layout in the shader.
 			3,                                // size
 			GL_FLOAT,                         // type
 			GL_FALSE,                         // normalized?
@@ -170,13 +189,15 @@ int main(void)
 			(void*)0                          // array buffer offset
 		);
 
-		glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 12 * 3, 1);
+		glVertexAttribDivisor(1, 1); // colors : one per instance
+		glVertexAttribDivisor(2, 1); // positions : one per instance
 
-		// Draw the triangle !
-		//glDrawArrays(GL_TRIANGLES, 0, 12 * 3); // 12*3 indices starting at 0 -> 12 triangles
+		// draw
+		glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 12 * 3, RandomWalker::MAX_CUBES);
 
 		glDisableVertexAttribArray(0);
 		glDisableVertexAttribArray(1);
+		glDisableVertexAttribArray(2);
 
 		// Swap buffers
 		glfwSwapBuffers(window);
@@ -194,6 +215,7 @@ int main(void)
 	// Cleanup VBO and shader
 	glDeleteBuffers(1, &vertexBuffer);
 	glDeleteBuffers(1, &colorBuffer);
+	glDeleteBuffers(1, &positionBuffer);
 	glDeleteProgram(programID);
 	glDeleteVertexArrays(1, &VertexArrayID);
 
