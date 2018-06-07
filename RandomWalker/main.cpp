@@ -38,7 +38,7 @@ int main(void)
 	// Open a window and create its OpenGL context
 	window = glfwCreateWindow(1024, 768, "Random Walker", NULL, NULL);
 	if (window == NULL) {
-		std::cout <<  stderr << "Failed to open GLFW window. If you have an Intel GPU, they are not 3.3 compatible. Try the 2.1 version of the tutorials." << std::endl;
+		std::cout << stderr << "Failed to open GLFW window. If you have an Intel GPU, they are not 3.3 compatible. Try the 2.1 version of the tutorials." << std::endl;
 		getchar();
 		glfwTerminate();
 		return -1;
@@ -57,38 +57,47 @@ int main(void)
 	// Ensure we can capture the escape key being pressed below
 	glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE);
 
-	// Dark blue background
 	glClearColor(0.0f, 0.0f, 0.4f, 0.0f);
 
-	// Enable depth test
 	glEnable(GL_DEPTH_TEST);
-	// Accept fragment if it closer to the camera than the former one
 	glDepthFunc(GL_LESS);
 
 	GLuint VertexArrayID;
 	glGenVertexArrays(1, &VertexArrayID);
 	glBindVertexArray(VertexArrayID);
 
-	// Create and compile our GLSL program from the shaders
 	GLuint programID = LoadShaders("shaders/TransformVertexShader.vertexshader", "shaders/ColorFragmentShader.fragmentshader");
 
-	// Get a handle for our "MVP" uniform
 	GLuint MatrixID = glGetUniformLocation(programID, "MVP");
 
 	// Projection matrix : 45° Field of View, 4:3 ratio, display range : 0.1 unit <-> 100 units
 	glm::mat4 Projection = glm::perspective(glm::radians(45.0f), 4.0f / 3.0f, 0.1f, 100.0f);
+
 	// Camera matrix
 	glm::mat4 View = glm::lookAt(
 		glm::vec3(4, 3, -3), // Camera is at (4,3,-3), in World Space
 		glm::vec3(0, 0, 0), // and looks at the origin
 		glm::vec3(0, 1, 0)  // Head is up (set to 0,-1,0 to look upside-down)
 	);
-	// Model matrix : an identity matrix (model will be at the origin)
+
 	glm::mat4 Model = glm::mat4(1.0f);
-	// Our ModelViewProjection : multiplication of our 3 matrices
-	glm::mat4 MVP = Projection * View * Model; // Remember, matrix multiplication is the other way around
+	glm::mat4 MVP = Projection * View * Model;
 
 	RandomWalker randomWalker = RandomWalker();
+
+	GLfloat* g_vertex_buffer_data = new GLfloat[RandomWalker::MAX_CUBES * 12 * 3 * 3];
+	GLfloat* g_color_buffer_data = new GLfloat[RandomWalker::MAX_CUBES * 12 * 3 * 3];
+
+	GLuint vertexBuffer;
+	glGenBuffers(1, &vertexBuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
+	glBufferData(GL_ARRAY_BUFFER, RandomWalker::MAX_CUBES * 12 * 3 * 3 * sizeof(GLfloat), NULL, GL_STREAM_DRAW);
+
+	// The VBO containing the colors of the particles
+	GLuint colorBuffer;
+	glGenBuffers(1, &colorBuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, colorBuffer);
+	glBufferData(GL_ARRAY_BUFFER, RandomWalker::MAX_CUBES * 12 * 3 * 3 * sizeof(GLfloat), NULL, GL_STREAM_DRAW);
 
 	const double FRAMES_PER_SECOND = 60; // this should be able to run the update loop at 60 fps easily
 	const double MS_PER_FRAME = 1000 / FRAMES_PER_SECOND;
@@ -103,7 +112,7 @@ int main(void)
 	//float interpolation;
 
 	while (glfwGetKey(window, GLFW_KEY_ESCAPE) != GLFW_PRESS && glfwWindowShouldClose(window) == 0) {
-		double newTime= glfwGetTime() * 1000;
+		double newTime = glfwGetTime() * 1000;
 		loops = 0;
 		while (newTime > next_game_tick && loops < MAX_FRAMESKIP) {
 
@@ -116,12 +125,60 @@ int main(void)
 		// No moving objects in this, so no need to use the interpolation
 		//interpolation = float(newTime + SKIP_TICKS - next_game_tick) / float(SKIP_TICKS);
 
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		glUseProgram(programID);
-
-		randomWalker.draw();
+		randomWalker.draw(g_vertex_buffer_data, g_color_buffer_data, 0);
 		currentDrawsPerSecond += 1;
 
+		// Clear the screen
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
+		glBufferData(GL_ARRAY_BUFFER, RandomWalker::MAX_CUBES * 12 * 3 * 3 * sizeof(GLfloat), NULL, GL_STREAM_DRAW);
+		glBufferSubData(GL_ARRAY_BUFFER, 0, RandomWalker::MAX_CUBES * sizeof(GLfloat) * 12 * 3 * 3, g_vertex_buffer_data);
+
+		glBindBuffer(GL_ARRAY_BUFFER, colorBuffer);
+		glBufferData(GL_ARRAY_BUFFER, RandomWalker::MAX_CUBES * 12 * 3 * 3 * sizeof(GLfloat), NULL, GL_STREAM_DRAW); // Buffer orphaning, a common way to improve streaming perf. See above link for details.
+		glBufferSubData(GL_ARRAY_BUFFER, 0, RandomWalker::MAX_CUBES * sizeof(GLfloat) * 12 * 3 * 3, g_color_buffer_data);
+
+		// Use our shader
+		glUseProgram(programID);
+
+		// Send our transformation to the currently bound shader, 
+		// in the "MVP" uniform
+		glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &MVP[0][0]);
+
+		// 1rst attribute buffer : vertices
+		glEnableVertexAttribArray(0);
+		glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
+		glVertexAttribPointer(
+			0,                  // attribute. No particular reason for 0, but must match the layout in the shader.
+			3,                  // size
+			GL_FLOAT,           // type
+			GL_FALSE,           // normalized?
+			0,                  // stride
+			(void*)0            // array buffer offset
+		);
+
+		// 2nd attribute buffer : colors
+		glEnableVertexAttribArray(1);
+		glBindBuffer(GL_ARRAY_BUFFER, colorBuffer);
+		glVertexAttribPointer(
+			1,                                // attribute. No particular reason for 1, but must match the layout in the shader.
+			3,                                // size
+			GL_FLOAT,                         // type
+			GL_FALSE,                         // normalized?
+			0,                                // stride
+			(void*)0                          // array buffer offset
+		);
+
+		glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 12 * 3, 1);
+
+		// Draw the triangle !
+		//glDrawArrays(GL_TRIANGLES, 0, 12 * 3); // 12*3 indices starting at 0 -> 12 triangles
+
+		glDisableVertexAttribArray(0);
+		glDisableVertexAttribArray(1);
+
+		// Swap buffers
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 
@@ -135,8 +192,8 @@ int main(void)
 	}
 
 	// Cleanup VBO and shader
-	//glDeleteBuffers(1, &vertexbuffer);
-	//glDeleteBuffers(1, &colorbuffer);
+	glDeleteBuffers(1, &vertexBuffer);
+	glDeleteBuffers(1, &colorBuffer);
 	glDeleteProgram(programID);
 	glDeleteVertexArrays(1, &VertexArrayID);
 

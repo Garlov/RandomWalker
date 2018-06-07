@@ -10,18 +10,20 @@ RandomWalker::~RandomWalker() {
 
 void RandomWalker::update(double deltaTime) {
 	timeSinceLastCube += deltaTime;
-	if (timeSinceLastCube > timeBetweenCubes) {
-		timeSinceLastCube -= timeBetweenCubes;
+	if (timeSinceLastCube > TIME_BETWEEN_CUBES && cubes.size() < MAX_CUBES) {
+		timeSinceLastCube -= TIME_BETWEEN_CUBES;
 		move();
 		spawnCube();
 	}
 }
 
-void RandomWalker::draw() {
-	for (int i = 0; i < cubes.size(); i++) {
+int RandomWalker::draw(GLfloat* g_vertex_buffer_data, GLfloat* g_color_buffer_data, int index) {
+	for (unsigned int i = 0; i < cubes.size(); i++) {
 		Cube * cube = cubes.at(i);
-		cube->draw();
+		index = cube->draw(g_vertex_buffer_data, g_color_buffer_data, index);
 	}
+
+	return index;
 }
 
 void RandomWalker::move() {
@@ -62,7 +64,11 @@ Direction RandomWalker::getDirection() {
 }
 
 void RandomWalker::spawnCube() {
+	// TODO check if there is already a cube in this position and skip making a new one if that is true
 	std::cout << "spawn cube" << std::endl;
 	Cube * newCube = new Cube();
 	cubes.push_back(newCube);
 }
+
+const int RandomWalker::MAX_CUBES = 1;
+const double RandomWalker::TIME_BETWEEN_CUBES = 1000;

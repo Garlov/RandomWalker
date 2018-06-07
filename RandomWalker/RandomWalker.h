@@ -19,12 +19,16 @@ class RandomWalker
 public:
 	RandomWalker();
 	~RandomWalker();
-	void draw();
+
+	static const int MAX_CUBES;
+
+	int draw(GLfloat* g_vertex_buffer_data, GLfloat* g_color_buffer_data, int index);
 	void update(double deltaTime);
 
 private:
+	static const double TIME_BETWEEN_CUBES;
+
 	double timeSinceLastCube = 0;
-	const double timeBetweenCubes = 1000;
 	glm::vec3 position = glm::vec3(0, 0, 0);
 	std::vector<Cube*> cubes;
 
