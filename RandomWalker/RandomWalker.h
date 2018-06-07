@@ -29,8 +29,8 @@ public:
 private:
 	static const double TIME_BETWEEN_CUBES;
 
-	double timeSinceLastCube = 0;
-	glm::vec3 position = glm::vec3(0, 0, 0);
+	double timeSinceLastCube;
+	glm::vec3 position;
 	std::vector<Cube*> cubes;
 
 	void move();

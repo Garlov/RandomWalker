@@ -5,6 +5,8 @@ const int RandomWalker::MAX_CUBES = 1000;
 const double RandomWalker::TIME_BETWEEN_CUBES = 50;
 
 RandomWalker::RandomWalker() {
+	timeSinceLastCube = 0;
+	position = glm::vec3(0, 0, 0);
 }
 
 
@@ -28,7 +30,7 @@ int RandomWalker::getCubeCount()
 }
 
 int RandomWalker::draw(GLfloat* g_vertex_buffer_data, GLfloat* g_color_buffer_data, GLfloat* g_position_buffer_data, int index) {
-	for (int i = 0; i < cubes.size(); i++) {
+	for (unsigned int i = 0; i < cubes.size(); i++) {
 		Cube * cube = cubes.at(i);
 		index = cube->draw(g_vertex_buffer_data, g_color_buffer_data, g_position_buffer_data, index);
 	}
@@ -79,7 +81,7 @@ void RandomWalker::spawnCube() {
 
 bool RandomWalker::hasCubeOnPosition(glm::vec3 pos)
 {
-	for (int i = 0; i < cubes.size(); i++) {
+	for (unsigned int i = 0; i < cubes.size(); i++) {
 		Cube * cube = cubes.at(i);
 		if (cube->getPosition() == pos) {
 			return true;
